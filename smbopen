@@ -22,7 +22,7 @@ if [[ "$smbpath" =~ smb://(.*?) ]]; then
     host=`echo "$smbpath" | sed "s|smb://||;s|/.*||"`
     smbshare=`echo "$smbpath" | sed "s|smb://$host||;s|^/||;s|/.*||"`
 else
-    echo "$smbpath: No match"
+    echo "$smbpath: Wrong syntax"
     exit 1
 fi
 
