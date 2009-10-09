@@ -17,7 +17,7 @@ FM=konqueror #mc
 MOUNT_ROOT=/media/samba
 ER="kdialog --error" #echo
 
-smbpath=`ruby -e "require 'cgi'; puts CGI.unescape('$(echo "$@" | sed "s|'|%27|")')"`
+smbpath=`ruby -e "require 'cgi'; puts CGI.unescape('$(echo "$@" | sed "s|'|%27|g")')"`
 if [[ "$smbpath" =~ smb://(.*?) ]]; then
     host=`echo "$smbpath" | sed "s|smb://||;s|/.*||"`
     smbshare=`echo "$smbpath" | sed "s|smb://$host||;s|^/||;s|/.*||"`
