@@ -47,7 +47,7 @@ if [[ "$error" == "" ]]; then
     if [ -e "$localpath" ]; then 
         $FM "$localpath"
     else
-    	$ER "Path does not exist"
+    	$ER "$smbpath: Path does not exist"
     fi
 else
     $ER "$error"
