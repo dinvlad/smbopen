@@ -41,7 +41,7 @@ else
 fi
 
 echo "$list" | while read share; do
-    sudo umount.cifs "$MOUNT_ROOT/$host/$share" 2> /dev/null
+    sudo umount.cifs "$MOUNT_ROOT/$host/$share" &> /dev/null
 done
 
-rm -r --one-file-system "$MOUNT_ROOT/$host" 2> /dev/null
+rm -r --one-file-system "$MOUNT_ROOT/$host" &> /dev/null
