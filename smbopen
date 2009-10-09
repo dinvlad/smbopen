@@ -42,8 +42,8 @@ if [[ "$error" = "" ]]; then
     done
 fi
 
-localpath="$MOUNT_ROOT/`echo "$smbpath" | sed 's|smb://||'`"
 if [[ "$error" == "" ]]; then
+    localpath="$MOUNT_ROOT/`echo "$smbpath" | sed 's|smb://||'`"
     if [ -e "$localpath" ]; then 
         $FM "$localpath"
     else
