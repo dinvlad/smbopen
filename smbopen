@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Provided with an smb:// link to a Samba resource (host, folder, or file), this script automounts all the public Samba 
+# shares on the matching host, and opens the correspoding full path to the resource in your favourite file manager $FM; 
+# after you're done with browsing the resource or using it (no need to download anything any more!:), close the $FM, and 
+# the script will automatically unmount everything pertaining to this resource and remove the correspoding folders in $MOUNT_ROOT.
+# 
+# Usage: smbopen smb://path, where 'path' is 'host[/]', 'host/share[/]', 'host/share/file_or_folder[/]' etc.
+# You can use the script as an smb:// protocol handler in Firefox, Opera (using xdg-open) etc. 
+# It understands non-ASCII symbols in links, as well as %XX-encoding.
+# For more information, see http://github.com/kremso/smbmounter
+#
+# Caveat: Currently you may use only those FMs that don't detach from the script while being launched.
+
+FM=konqueror #mc 
+MOUNT_ROOT=/media/samba
+ER="kdialog --error" #echo
+
+smbpath=`ruby -e "require 'cgi'; puts CGI.unescape('$(echo "$@" | sed "s|'|%27|")')"`
+if [[ "$smbpath" =~ smb://(.*?) ]]; then
+    host=`echo "$smbpath" | sed "s|smb://||;s|/.*||"`
+    smbshare=`echo "$smbpath" | sed "s|smb://$host||;s|^/||;s|/.*||"`
+else
+    echo "$smbpath: No match"
+    exit 1
+fi
+
+list=`smbclient -gNL "$host" 2>/dev/null | sed -n 's/^Disk|\([^|]*\)|.*/\1/p'`
+if [[ $list == "" ]]; then 
+    error="$host: No such host"
+else
+    if [ "$smbshare" != "" -a "`echo "$list" | grep -w "$smbshare"`" == "" ]; then error="$smbshare: No such share"; fi
+fi
+
+if [[ "$error" = "" ]]; then
+    echo "$list" | while read share; do
+        mount_dir=$MOUNT_ROOT/$host/$share
+        mkdir -p "$mount_dir"
+        result=`sudo mount.cifs "//$host/$share" "$mount_dir" -o guest,nounix`
+        if [ "$result" != "" -a "$share" == "$smbshare" ]; then error="$result"; fi
+    done
+fi
+
+localpath="$MOUNT_ROOT/`echo "$smbpath" | sed 's|smb://||'`"
+if [[ "$error" == "" ]]; then
+    if [ -e "$localpath" ]; then 
+        $FM "$localpath"
+    else
+    	$ER "Path does not exist"
+    fi
+else
+    $ER "$error"
+fi
+
+echo "$list" | while read share; do
+    sudo umount.cifs "$MOUNT_ROOT/$host/$share" &> /dev/null
+done
+
+rm -r --one-file-system "$MOUNT_ROOT/$host" &> /dev/null
